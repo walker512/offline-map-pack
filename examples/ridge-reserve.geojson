@@ -1,0 +1,10 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"name":"Ridge Reserve","category":"Boundary","notes":"Fictional study area; the inner ring is an excluded zone."},"geometry":{"type":"Polygon","coordinates":[[[120.19,30.10],[120.24,30.10],[120.27,30.14],[120.25,30.18],[120.20,30.17],[120.18,30.13],[120.19,30.10]],[[120.214,30.138],[120.216,30.151],[120.226,30.154],[120.229,30.141],[120.214,30.138]]]}},
+    {"type":"Feature","properties":{"name":"North Ridge Loop","category":"Trail","notes":"Training route, not for navigation."},"geometry":{"type":"LineString","coordinates":[[120.202,30.124],[120.203,30.141],[120.208,30.160],[120.227,30.167],[120.244,30.155],[120.241,30.135],[120.202,30.124]]}},
+    {"type":"Feature","properties":{"name":"South Station","category":"Trailhead"},"geometry":{"type":"Point","coordinates":[120.202,30.124]}},
+    {"type":"Feature","properties":{"name":"Ridge Checkpoint","category":"Checkpoint"},"geometry":{"type":"Point","coordinates":[120.227,30.167]}},
+    {"type":"Feature","properties":{"name":"Training Plot","category":"Survey area"},"geometry":{"type":"Polygon","coordinates":[[[120.236,30.115],[120.250,30.118],[120.249,30.128],[120.235,30.126],[120.236,30.115]]]}}
+  ]
+}

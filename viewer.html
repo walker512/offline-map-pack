@@ -1,0 +1,282 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-DamtkG8f+GtSN92Mwj1/5pnQ85OuIbjFKn7ATCFSS9c='; style-src 'sha256-jZZ5XJIBYPpJgsfcY207n77fFPuOew60P2j52BB+pxg='; base-uri 'none'; form-action 'none'">
+<title>Map Pack Studio · Offline viewer</title>
+<style>
+:root{color-scheme:dark;--bg:#0c141d;--panel:#132230;--line:#314759;--text:#f0f5f7;--muted:#b4c5cf;--accent:#91e0c0;--area:#6cc4b9;--path:#f4c57a;--spot:#f6919d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:1rem/1.5 system-ui,sans-serif}main{max-width:1440px;margin:auto;padding:clamp(1rem,3vw,2.5rem)}header{border-bottom:1px solid var(--line);padding-bottom:1.3rem;margin-bottom:1.3rem}h1,h2,h3,p{margin:0}h1{font-size:clamp(2rem,5vw,3.8rem);letter-spacing:-.055em;line-height:1.13;margin:.18rem 0 .55rem}h2{font-size:1.12rem}h3{font-size:1rem}p+p{margin-top:.55rem}.eyebrow{color:var(--accent);font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;font-weight:750}.muted{color:var(--muted)}.workspace{display:grid;grid-template-columns:minmax(0,2.1fr) minmax(270px,1fr);gap:1rem;align-items:start}.panel{background:var(--panel);border:1px solid var(--line);border-radius:1rem;overflow:hidden}.section{padding:1rem}.bar,.paging,.layers{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}.bar{justify-content:space-between;padding:.8rem 1rem}.controls{display:flex;gap:.4rem;flex-wrap:wrap}button{font:inherit;color:inherit;background:#1b3445;border:1px solid #527083;border-radius:.45rem;min-height:2.5rem;padding:.3rem .7rem;cursor:pointer}button:hover:not(:disabled){background:#295069}button:disabled{opacity:.55;cursor:default}input:focus-visible,button:focus-visible,svg:focus-visible{outline:3px solid var(--accent);outline-offset:3px}.field-map{background:#091923;border-block:1px solid var(--line);position:relative}.map{display:block;width:100%;height:clamp(300px,55vh,620px);cursor:grab;touch-action:none;background-image:linear-gradient(#163040 1px,transparent 1px),linear-gradient(90deg,#163040 1px,transparent 1px);background-size:28px 28px}.map:active{cursor:grabbing}.north{position:absolute;right:1rem;top:.8rem;font-size:.9rem;pointer-events:none}.feature{cursor:pointer}.shape{vector-effect:non-scaling-stroke;stroke-linejoin:round;stroke-linecap:round}.area .shape{fill:#367c7770;fill-rule:evenodd;stroke:var(--area);stroke-width:2.3}.path .shape{fill:none;stroke:var(--path);stroke-width:3}.spot .shape{fill:var(--spot);stroke:#0c141d;stroke-width:2;vector-effect:non-scaling-stroke}.feature.selected .shape{stroke:white;stroke-width:4}.map-caption{padding:.75rem 1rem;font-size:.86rem;overflow-wrap:anywhere}.layers label{display:inline-flex;align-items:center;gap:.28rem;margin-right:.35rem}.layers input{accent-color:var(--accent);width:1rem;height:1rem}.spot-color{color:var(--spot)}.path-color{color:var(--path)}.area-color{color:var(--area)}.sidebar{display:grid;gap:1rem;min-width:0}.sidebar h2{margin-bottom:.55rem}.feature-list{list-style:none;padding:0;margin:.55rem 0;display:grid;gap:.3rem;max-height:18.25rem;overflow:auto}.feature-list button{display:block;text-align:left;width:100%;overflow-wrap:anywhere}.feature-list button[aria-pressed=true]{background:#2c564e;border-color:var(--accent)}.paging{justify-content:space-between}.inspector{min-height:5rem;overflow-wrap:anywhere}.rows{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.65fr);margin:.5rem 0 0;gap:.25rem .65rem;overflow-wrap:anywhere}.rows dt{color:var(--muted)}.rows dd{margin:0;white-space:pre-wrap}.number{font-variant-numeric:tabular-nums}.error{padding:1rem;color:#ffc3c4;border:1px solid #b5626f}.small{font-size:.87rem}footer{margin-top:1rem}[hidden]{display:none!important}
+.coverage{margin-bottom:1.3rem;overflow-wrap:anywhere}.coverage h2{margin-top:0}.coverage dl{margin-bottom:0}
+@media(max-width:780px){.workspace{grid-template-columns:1fr}.map{height:clamp(300px,48vh,480px)}}
+</style>
+</head>
+<body>
+<main>
+<header><p class="eyebrow">Field kit / Local file</p><h1>Map Pack Studio</h1><p class="muted">Inspect a portable map without a tile server, account, or network connection.</p></header>
+<noscript><p class="error">Enable JavaScript to inspect the embedded map.</p></noscript>
+<p id="error" class="error" role="alert" hidden>Could not open the embedded map data. Regenerate this viewer from a verified map pack.</p>
+<section class="panel section coverage" id="coverage" aria-labelledby="coverage-title" hidden>
+<h2 id="coverage-title">Coverage and gaps</h2>
+<p class="muted" id="coverage-summary">Blank areas do not establish that there is nothing there.</p>
+<dl id="coverage-notes" class="rows"></dl>
+</section>
+<div class="workspace" id="workspace" hidden>
+<section class="panel" aria-labelledby="map-heading">
+<div class="bar"><h2 id="map-heading">Map viewport</h2><div class="controls" aria-label="Map controls"><button type="button" id="zoom-in" aria-label="Zoom in">+</button><button type="button" id="zoom-out" aria-label="Zoom out">−</button><button type="button" id="fit">Fit map</button></div></div>
+<div class="field-map"><svg class="map" id="map" role="img" aria-label="Map preview; use the feature list for keyboard selection" aria-describedby="map-help" tabindex="0" preserveAspectRatio="xMidYMid meet"><title>Embedded map geometries</title><g id="areas"></g><g id="paths"></g><g id="spots"></g></svg><span class="north" aria-hidden="true">↑ N</span></div>
+<div class="map-caption"><p id="map-help" class="muted">Drag or use arrow keys to pan. Use + / − to zoom and 0 to fit. Choose a feature on the map or in the list.</p><p id="extent" class="number"></p></div>
+</section>
+<aside class="sidebar" aria-label="Map information">
+<section class="panel section"><h2>Layers</h2><div class="layers" aria-label="Visible layers"><label><input type="checkbox" id="show-areas" checked><span class="area-color">Areas</span></label><label><input type="checkbox" id="show-paths" checked><span class="path-color">Lines</span></label><label><input type="checkbox" id="show-spots" checked><span class="spot-color">Points</span></label></div></section>
+<section class="panel section"><h2>Features</h2><p id="count" role="status" class="muted small"></p><ul id="list" class="feature-list"></ul><div class="paging"><button type="button" id="prev">Previous</button><span id="page" class="muted small"></span><button type="button" id="next">Next</button></div></section>
+<section class="panel section inspector" aria-labelledby="inspector-title"><h2 id="inspector-title">Feature details</h2><div id="details" aria-live="polite"><p class="muted">No feature selected.</p></div></section>
+<section class="panel section"><h2>Data provenance</h2><dl id="provenance" class="rows"></dl></section>
+</aside>
+</div>
+<footer class="muted small">Schematic coordinate view; no basemap, navigation directions, or distance measurements. Source and license are supplied by the pack creator. Inspect sensitive locations and properties before sharing.</footer>
+</main>
+<div id="map-payload" hidden>MAP_PAYLOAD_BASE64</div>
+<script>
+"use strict";
+(() => {
+  const el = (id) => document.getElementById(id);
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = (name) => document.createElementNS(svgNS, name);
+  const cls = {Point:"spot",MultiPoint:"spot",LineString:"path",MultiLineString:"path",Polygon:"area",MultiPolygon:"area"};
+  const layers = {area:el("areas"),path:el("paths"),spot:el("spots")};
+  const layerControls = {area:el("show-areas"),path:el("show-paths"),spot:el("show-spots")};
+  const PAGE_SIZE = 20;
+  const map = el("map");
+  const groupByFeature = [];
+  const circles = [];
+  let items = [];
+  let page = 0;
+  let selected = -1;
+  let home, view, drag, previousUnitsPerPixel;
+  const limit = (n, min, max) => Math.max(min, Math.min(max, n));
+  function addField(dl, name, value) {
+    const dt = document.createElement("dt");
+    const dd = document.createElement("dd");
+    dt.textContent = name;
+    dd.textContent = value;
+    dl.append(dt, dd);
+  }
+  function label(item, index) {
+    const name = item.properties?.name;
+    return typeof name === "string" && name.trim() ? name : item.geometry.type + " " + (index + 1);
+  }
+  function shown(index) {
+    return layerControls[cls[items[index].geometry.type]].checked;
+  }
+  function renderList() {
+    const list = el("list");
+    const visible = items.map((item, i) => i).filter(shown);
+    const pageCount = Math.max(1, Math.ceil(visible.length / PAGE_SIZE));
+    page = limit(page, 0, pageCount - 1);
+    list.replaceChildren();
+    for (const i of visible.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE)) {
+      const li = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label(items[i], i);
+      button.dataset.index = i;
+      button.setAttribute("aria-pressed", String(selected === i));
+      li.append(button); list.append(li);
+    }
+    el("count").textContent = visible.length + " of " + items.length + " visible";
+    el("page").textContent = (page + 1) + " / " + pageCount;
+    el("prev").disabled = page === 0;
+    el("next").disabled = page + 1 >= pageCount;
+  }
+  function select(i, jump) {
+    if (selected >= 0) groupByFeature[selected].classList.remove("selected");
+    selected = i;
+    const details = el("details");
+    details.replaceChildren();
+    if (i < 0) {
+      details.textContent = "No feature selected.";
+    } else {
+      const item = items[i];
+      groupByFeature[i].classList.add("selected");
+      const heading = document.createElement("h3");
+      heading.textContent = label(item,i);
+      const data = document.createElement("dl");
+      data.className = "rows";
+      addField(data,"Geometry", item.geometry.type);
+      if (item.id != null) addField(data, "ID", String(item.id));
+      if (item.geometry.type === "Point") {
+        addField(data, "Lon, lat", item.geometry.coordinates.slice(0,2).join(", "));
+      }
+      const values = Object.entries(item.properties || {});
+      for (const [key,value] of values.slice(0,30)) {
+        const text = typeof value === "string" ? value : JSON.stringify(value);
+        addField(data,key,text.length > 600 ? text.slice(0, 600) + "…" : text);
+      }
+      if (values.length > 30) addField(data,"More", (values.length - 30) + " properties not displayed.");
+      details.append(heading,data);
+      if (jump) {
+        page = Math.floor(items.map((f, k) => k).filter(shown).indexOf(i) / PAGE_SIZE);
+        renderList();
+      }
+    }
+    for (const button of el("list").querySelectorAll("button")) {
+      button.setAttribute("aria-pressed", String(Number(button.dataset.index) === i));
+    }
+  }
+  function project(coord, lon0, lat0, lonScale) {
+    return [(coord[0]-lon0)*lonScale, lat0-coord[1]];
+  }
+  function render() {
+    map.setAttribute("viewBox",[view.x,view.y,view.w,view.h].join(" "));
+    const rect = map.getBoundingClientRect();
+    const unitsPerPixel = Math.max(view.w/Math.max(1,rect.width),view.h/Math.max(1,rect.height));
+    if (unitsPerPixel !== previousUnitsPerPixel) {
+      for (const circle of circles) circle.setAttribute("r", 5 * unitsPerPixel);
+      previousUnitsPerPixel = unitsPerPixel;
+    }
+    el("zoom-in").disabled = view.w <= home.w/32;
+    el("zoom-out").disabled = view.w >= home.w*4;
+  }
+  function zoom(factor) {
+    const width = limit(view.w*factor,home.w/32,home.w*4);
+    const height = view.h*width/view.w;
+    view = {x:view.x+(view.w-width)/2,y:view.y+(view.h-height)/2,w:width,h:height};
+    render();
+  }
+  function pan(dx,dy) {
+    view.x = limit(view.x+dx,home.x-home.w*8,home.x+home.w*8);
+    view.y = limit(view.y+dy,home.y-home.h*8,home.y+home.h*8);
+    render();
+  }
+  function bindControls() {
+    el("zoom-in").addEventListener("click",() => zoom(.65));
+    el("zoom-out").addEventListener("click",() => zoom(1/.65));
+    const fit = () => {view = {...home}; render();};
+    el("fit").addEventListener("click",fit);
+    el("prev").addEventListener("click",() => {page--; renderList(); if(el("prev").disabled)el("next").focus();});
+    el("next").addEventListener("click",() => {page++; renderList(); if(el("next").disabled)el("prev").focus();});
+    el("list").addEventListener("click",e => {
+      const control = e.target.closest("button[data-index]");
+      if (control) select(Number(control.dataset.index),false);
+    });
+    for (const [key,input] of Object.entries(layerControls)) {
+      input.addEventListener("change",() => {
+        layers[key].setAttribute("display",input.checked?"inline":"none");
+        if (selected >= 0 && !shown(selected)) select(-1, false);
+        page = 0; renderList();
+      });
+    }
+    map.addEventListener("keydown",e => {
+      switch(e.key) {
+        case "+": case "=": zoom(.65); break; case "-": zoom(1/.65); break; case "0": fit(); break;
+        case "ArrowLeft": pan(-view.w/12,0); break; case "ArrowRight": pan(view.w/12,0); break;
+        case "ArrowUp": pan(0,-view.h/12); break; case "ArrowDown": pan(0,view.h/12); break;
+        default:return;
+      }
+      e.preventDefault();
+    });
+    map.addEventListener("pointerdown",e => {
+      if(e.button !== 0 || !e.isPrimary) return;
+      const node = e.target.closest("[data-index]");
+      drag = {id:e.pointerId,x:e.clientX,y:e.clientY,active:false,index:node ? Number(node.dataset.index) : -1};
+      map.setPointerCapture(e.pointerId);
+    });
+    map.addEventListener("pointermove",e => {
+      if(!drag || drag.id!==e.pointerId) return;
+      const dx=e.clientX-drag.x, dy=e.clientY-drag.y;
+      if(!drag.active && Math.hypot(dx,dy)<4) return;
+      drag.active=true; drag.x=e.clientX; drag.y=e.clientY;
+      const rect=map.getBoundingClientRect();
+      const scale=Math.max(view.w/rect.width,view.h/rect.height);
+      pan(-dx*scale,-dy*scale);
+    });
+    map.addEventListener("pointerup",e => {
+      if(!drag || drag.id!==e.pointerId) return;
+      if(!drag.active && drag.index>=0 && shown(drag.index)) select(drag.index,true);
+      drag=null;
+    });
+    map.addEventListener("lostpointercapture",() => {drag=null;});
+    window.addEventListener("resize",render);
+  }
+  try {
+    const bytes=Uint8Array.from(atob(el("map-payload").textContent.trim()),m=>m.charCodeAt(0));
+    const {geojson,manifest}=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
+    if (geojson?.type !== "FeatureCollection" || !Array.isArray(geojson.features) || !manifest) throw Error("Invalid data");
+    items=geojson.features;
+    let lo=Infinity, bottom=Infinity, hi=-Infinity, top=-Infinity;
+    function visit(coords) {
+      if (typeof coords[0] === "number") {
+        if (!Number.isFinite(coords[0]) || !Number.isFinite(coords[1])) throw Error("Invalid coordinate");
+        lo=Math.min(lo,coords[0]); hi=Math.max(hi,coords[0]); bottom=Math.min(bottom,coords[1]); top=Math.max(top,coords[1]); return;
+      }
+      coords.forEach(visit);
+    }
+    for (const feature of items) {
+      if (!Object.hasOwn(cls,feature.geometry?.type)) throw Error("Unknown geometry");
+      visit(feature.geometry.coordinates);
+    }
+    if (!Number.isFinite(lo)) throw Error("No coordinates");
+    const lon0=(lo+hi)/2,lat0=(bottom+top)/2;
+    const lonScale=Math.max(.15,Math.cos(lat0*Math.PI/180));
+    const w=Math.max((hi-lo)*lonScale,.00001), h=Math.max(top-bottom,.00001);
+    const width=Math.max(w,h*.52)*1.14,height=Math.max(h,w*.40)*1.14;
+    home={x:-width/2,y:-height/2,w:width,h:height}; view={...home};
+    const coordinate=(xy)=>project(xy,lon0,lat0,lonScale);
+    function pathFor(line,closed) {
+      const positions=line.map(coordinate);
+      return "M"+positions.map(p=>p.join(" ")).join("L")+(closed?"Z":"");
+    }
+    for(const [i,item] of items.entries()) {
+      const g=svg("g"),geom=item.geometry,c=geom.coordinates,key=cls[geom.type];
+      g.setAttribute("class","feature "+key);
+      g.dataset.index=i;
+      const tip=svg("title"); tip.textContent=label(item,i); g.append(tip);
+      function addPath(d) {
+        const path=svg("path"); path.setAttribute("class","shape"); path.setAttribute("d",d); g.append(path);
+      }
+      function addCircle(position) {
+        const dot=svg("circle"), [x,y]=coordinate(position);
+        dot.setAttribute("class","shape"); dot.setAttribute("cx",x); dot.setAttribute("cy",y); g.append(dot); circles.push(dot);
+      }
+      switch(geom.type) {
+        case "Point": addCircle(c); break;
+        case "MultiPoint": c.forEach(addCircle); break;
+        case "LineString": addPath(pathFor(c,false)); break;
+        case "MultiLineString": c.forEach(line=>addPath(pathFor(line,false))); break;
+        case "Polygon": addPath(c.map(line=>pathFor(line,true)).join(" ")); break;
+        case "MultiPolygon": c.forEach(polygon=>addPath(polygon.map(line=>pathFor(line,true)).join(" "))); break;
+      }
+      layers[key].append(g);
+      groupByFeature[i]=g;
+    }
+    const format=n=>String(Number(n.toFixed(6)));
+    el("extent").textContent="Extent (W, S → E, N): "+[lo,bottom,hi,top].map(format).join(", ")+(hi-lo>180?" · Longitude is not wrapped.":"");
+    const provenance=el("provenance");
+    addField(provenance,"Source",String(manifest.source ?? "Not supplied"));
+    addField(provenance,"License",String(manifest.license ?? "Not supplied"));
+    if(manifest.attribution) addField(provenance,"Attribution",String(manifest.attribution));
+    const coverage = manifest.coverage;
+    if (manifest.schema_version === 2 && typeof coverage?.included === "string"
+        && typeof coverage.gaps === "string") {
+      el("coverage-summary").textContent =
+        "Sender-declared, not independently verified. Blank areas do not establish that there is nothing there.";
+      const notes = el("coverage-notes");
+      addField(notes, "Included", coverage.included);
+      addField(notes, "Gaps or unassessed areas", coverage.gaps);
+    } else {
+      el("coverage-summary").textContent =
+        "No coverage statement supplied. Blank areas may have been omitted or not surveyed.";
+    }
+    el("workspace").hidden=false;
+    bindControls(); render(); renderList();
+    el("coverage").hidden=false;
+  } catch {
+    el("workspace").hidden=true;
+    el("error").hidden=false;
+  }
+})();
+</script>
+</body>
+</html>

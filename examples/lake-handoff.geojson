@@ -1,0 +1,9 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {"type":"Feature","properties":{"name":"North Pier","status":"Surveyed fishing spot"},"geometry":{"type":"Point","coordinates":[108.701,28.703]}},
+    {"type":"Feature","properties":{"name":"Access path","status":"Surveyed footpath"},"geometry":{"type":"LineString","coordinates":[[108.696,28.701],[108.698,28.701],[108.701,28.703]]}},
+    {"type":"Feature","properties":{"name":"Surveyed west bank","coverage":"Pier and access path included."},"geometry":{"type":"Polygon","coordinates":[[[108.695,28.699],[108.702,28.699],[108.702,28.704],[108.695,28.699]]]}},
+    {"type":"Feature","properties":{"name":"East bank: not surveyed","coverage":"No fishing spots or paths are included here. This outline marks the gap; it is not a hazard report."},"geometry":{"type":"Polygon","coordinates":[[[108.704,28.699],[108.709,28.699],[108.709,28.704],[108.704,28.699]]]}}
+  ]
+}
